@@ -1,0 +1,9 @@
+pluginManagement {
+    repositories {
+        maven { url 'https://nexus.dsic.com.tw/repository/maven-public/' }
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'UpJasperReport6To7'

@@ -1,0 +1,38 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.1.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.dsic'
+version = '0.0.1-SNAPSHOT'
+description = 'UpJasperReport6To7 - batch compile legacy (JR6) .jrxml into JR 7.0.8 .jasper binaries'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+    maven { url 'https://nexus.dsic.com.tw/repository/maven-public/' }
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+
+    // JasperReports 7.0.8 engine + modules used at .jasper compile time
+    implementation 'net.sf.jasperreports:jasperreports:7.0.8'
+    implementation 'net.sf.jasperreports:jasperreports-json:7.0.8'     // language="json" query templates
+    implementation 'net.sf.jasperreports:jasperreports-groovy:7.0.8'    // language="groovy" expression templates
+    implementation 'net.sf.jasperreports:jasperreports-fonts:7.0.8'
+    implementation 'org.apache.groovy:groovy:4.0.28'                    // groovy expression engine
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

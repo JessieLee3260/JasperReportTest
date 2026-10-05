@@ -1,0 +1,8 @@
+target/
+.gradle/
+cp.txt
+out-jasper/
+recompile-report.json
+*.log
+build/
+.idea/
