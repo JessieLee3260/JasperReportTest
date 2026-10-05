@@ -50,6 +50,11 @@
             <version>${jasper.version}</version>
         </dependency>
         <dependency>
+            <groupId>net.sf.jasperreports</groupId>
+            <artifactId>jasperreports-barbecue</artifactId>
+            <version>${jasper.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.groovy</groupId>
             <artifactId>groovy</artifactId>
         </dependency>

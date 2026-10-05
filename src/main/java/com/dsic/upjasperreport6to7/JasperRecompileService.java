@@ -95,14 +95,15 @@ public class JasperRecompileService {
             }
         }
 
-        Files.createDirectories(p.reportFile().getParent());
+        Path reportPath = p.reportFile().toAbsolutePath();
+        Files.createDirectories(reportPath.getParent());
         var report = new BatchReport(files.size(), okCount, failures.size(), failures,
                 p.outDir(), !p.dryRun());
         objectMapper.writerWithDefaultPrettyPrinter()
-                .writeValue(p.reportFile().toFile(), report);
+                .writeValue(reportPath.toFile(), report);
 
         log.info("==== SUMMARY: total={} ok={} fail={} dryRun={} report={} ====",
-                report.total(), report.ok(), report.failed(), p.dryRun(), p.reportFile());
+                report.total(), report.ok(), report.failed(), p.dryRun(), reportPath);
         failures.stream().limit(20).forEach(f -> log.info("  FAIL [{}] {}", f.path(), f.error()));
         return report;
     }
@@ -116,7 +117,7 @@ public class JasperRecompileService {
 
     private Path targetFor(Path jrxml, RecompileProperties p) {
         if (p.inPlace()) {
-            return jrxml.resolveSibling(jrxml.getFileName() + ".jasper");
+            return jrxml.resolveSibling(jrxml.getFileName().toString().replaceFirst("\\.jrxml$", ".jasper"));
         }
         Path rel = p.sourceDir().relativize(jrxml);
         return p.outDir().resolve(rel).resolveSibling(

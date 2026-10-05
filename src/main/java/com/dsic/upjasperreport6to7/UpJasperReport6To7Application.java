@@ -11,5 +11,4 @@ public class UpJasperReport6To7Application {
     public static void main(String[] args) {
         SpringApplication.run(UpJasperReport6To7Application.class, args);
     }
-
 }
