@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 以「記憶體中 DOM 重構」把舊版（iReport/JR6 世代）JRXML 轉成 JasperReports 7 新 XML 格式。
@@ -368,6 +369,14 @@ public final class LegacyJrxmlTransformer {
         return el;
     }
 
+    /** 舊 JasperReports componentElement → JR7 <element kind="component"><component kind="...">。
+     * barcode 元件（bbq）另加 type 屬性：JR7 的 StandardBarbecueComponent 靠 type 選 barcode provider。 */
+    private static final Set<String> BARBEQUE_TYPES = Set.of(
+            "Barcode2of7", "Barcode3of9", "Bookland", "Codabar", "Code128", "Code128A", "Code128B",
+            "Code128C", "Code39", "Code39Extended", "EAN128", "EAN13", "GlobalTradeItemNumber",
+            "Int2of5", "Monarch", "NW7", "PDF417", "PostNet", "RandomWeightUPCA", "SCC14",
+            "ShipmentIdentificationNumber", "SSCC18", "Std2of5", "UCC128", "UPCA", "USD3", "USD4", "USPS");
+
     /** 舊 JasperReports componentElement → JR7 <element kind="component"><component kind="...">。 */
     private static Element convertComponentElement(Document out, Element e, List<String> applied) {
         Element el = out.createElement("element");
@@ -383,7 +392,31 @@ public final class LegacyJrxmlTransformer {
             if (ce.getLocalName().equals("reportElement")) continue;
             Element comp = out.createElement("component");
             comp.setAttribute("kind", ce.getLocalName());
+            if (BARBEQUE_TYPES.contains(ce.getLocalName())) {
+                comp.setAttribute("type", ce.getLocalName());
+                applied.add("barcode-type:" + ce.getLocalName());
+            }
             copyAttributes(ce, comp, out, applied);
+            if (BARBEQUE_TYPES.contains(ce.getLocalName())) {
+                // legacy BBQ 屬性名與 JR7 StandardBarbecueComponent 不符，必須對映，
+                // 否則 jackson UnrecognizedPropertyException：
+                //   moduleWidth(float pt) → barWidth(Integer)；textPosition → drawText(bool)；
+                //   quietZone/verticalQuietZone/horizontalQuietZone 在 JR7 無對應 → 刪除
+                String mw = ce.getAttribute("moduleWidth");
+                if (!mw.isEmpty()) {
+                    comp.setAttribute("barWidth", String.valueOf((int) Math.round(Double.parseDouble(mw))));
+                    applied.add("barcode-mw->barWidth:" + mw);
+                }
+                String tp = ce.getAttribute("textPosition");
+                if (!tp.isEmpty()) {
+                    comp.setAttribute("drawText", tp.equals("none") ? "false" : "true");
+                    applied.add("barcode-textPosition->drawText:" + tp);
+                }
+                for (String q : new String[] { "moduleWidth", "textPosition", "quietZone",
+                        "verticalQuietZone", "horizontalQuietZone" }) {
+                    if (ce.hasAttribute(q)) comp.removeAttribute(q);
+                }
+            }
             for (Node gc : children(ce)) {
                 if (gc.getNodeType() == Node.ELEMENT_NODE) comp.appendChild(cloneRaw(out, (Element) gc, applied));
             }
@@ -509,16 +542,18 @@ public final class LegacyJrxmlTransformer {
         }
     }
 
-    /** 把舊元素原樣複製（含子元素遞迴，不含結構轉換）。 */
+    /** 把舊元素原樣複製（含子元素遞迴與 CDATA 文字，不含結構轉換）。 */
     private static Element cloneRaw(Document out, Element e, List<String> applied) {
         Element ne = out.createElement(e.getLocalName());
         copyAttributes(e, ne, out, applied);
         for (Node c : children(e)) {
             if (c.getNodeType() == Node.ELEMENT_NODE) {
                 ne.appendChild(cloneRaw(out, (Element) c, applied));
-            } else if (c.getNodeType() == Node.TEXT_NODE) {
+            } else if (c.getNodeType() == Node.TEXT_NODE || c instanceof CDATASection) {
+                // CDATA（expression 內容、JSON query 路徑等）必須原樣保留，
+                // 否則 jackson XML 解成 null expression → printWhen 條件/條碼 codeExpression 靜默遺失
                 String t = c.getTextContent();
-                if (!t.trim().isEmpty()) ne.appendChild(out.createTextNode(t.trim()));
+                if (!t.trim().isEmpty()) ne.appendChild(out.createCDATASection(t));
             }
         }
         return ne;
