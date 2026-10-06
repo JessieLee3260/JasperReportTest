@@ -205,6 +205,19 @@ public final class LegacyJrxmlTransformer {
                     }
                 }
             }
+            case "query" -> {
+                // JR6 主 dataset 的 <queryString> 在 jasperReport 根層；
+                // 保留 CDATA/文字（JsonDataSource 靠 query text 找 JSON 路徑，
+                // 丟掉文字會造成 language=json 資料集 0 筆/欄位 null）
+                for (Node c : children(e)) {
+                    if (c.getNodeType() == Node.TEXT_NODE || c.getNodeType() == Node.CDATA_SECTION_NODE) {
+                        String t = c.getTextContent();
+                        if (!t.trim().isEmpty()) ne.appendChild(out.createCDATASection(t));
+                    } else if (c.getNodeType() == Node.ELEMENT_NODE) {
+                        ne.appendChild(cloneRaw(out, (Element) c, applied));
+                    }
+                }
+            }
             case "style" -> {
                 for (Node c : children(e)) {
                     if (c.getNodeType() != Node.ELEMENT_NODE) continue;
@@ -584,19 +597,31 @@ public final class LegacyJrxmlTransformer {
             sb.append(' ').append(attrs.item(i).getNodeName()).append("=\"").append(escape(attrs.item(i).getNodeValue())).append('"');
         }
         int childCount = 0;
+        boolean onlyCdata = true;
         for (Node c = el.getFirstChild(); c != null; c = c.getNextSibling()) {
             if (c.getNodeType() == Node.ELEMENT_NODE || c instanceof CDATASection) childCount++;
+            if (c.getNodeType() == Node.ELEMENT_NODE) onlyCdata = false;
         }
         if (childCount == 0) {
             sb.append("/>");
             return;
         }
         sb.append(">");
-        for (Node c = el.getFirstChild(); c != null; c = c.getNextSibling()) {
-            if (c.getNodeType() != Node.ELEMENT_NODE && !(c instanceof CDATASection)) continue;
-            sb.append('\n');
-            writeNode(sb, c, depth + 1);
-            sb.append('\n');
+        if (onlyCdata) {
+            // 純 CDATA 子節（如 <query> 的 JSON 路徑）：inline 輸出，
+            // 避免換行混進文字內容（query text 會被當 JSON path，多餘空白會找不到節點）
+            for (Node c = el.getFirstChild(); c != null; c = c.getNextSibling()) {
+                if (c instanceof CDATASection cd) {
+                    sb.append("<![CDATA[").append(cd.getTextContent()).append("]]>");
+                }
+            }
+        } else {
+            for (Node c = el.getFirstChild(); c != null; c = c.getNextSibling()) {
+                if (c.getNodeType() != Node.ELEMENT_NODE && !(c instanceof CDATASection)) continue;
+                sb.append('\n');
+                writeNode(sb, c, depth + 1);
+                sb.append('\n');
+            }
         }
         sb.append("</").append(el.getNodeName()).append(">");
     }
