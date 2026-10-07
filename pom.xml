@@ -54,6 +54,12 @@
             <artifactId>jasperreports-barbecue</artifactId>
             <version>${jasper.version}</version>
         </dependency>
+        <!-- 補 jasper functions（TextFunctions.INTEGER_VALUE 等），供 java 語系報表表達式編譯解析簡單函式名稱（CLOUDWEBAP #1739 oar391） -->
+        <dependency>
+            <groupId>net.sf.jasperreports</groupId>
+            <artifactId>jasperreports-functions</artifactId>
+            <version>${jasper.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.groovy</groupId>
             <artifactId>groovy</artifactId>
