@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * 回歸測試：application.properties 的 upj.* 必須能成功綁定。
  *
  * 路徑欄位刻意是 String：若改成 java.nio.file.Path，Spring 的 String→Path
- * 轉換會把 "../LANDWEBAP/..." 當資源路徑正規化而拋
+ * 轉換會把 "../sample-reports/..." 當資源路徑正規化而拋
  * IllegalArgumentException（The resource path [...] has been normalized to [null]），
  * 導致 APPLICATION FAILED TO START。此測試確保綁定路徑不會再壞掉。
  */
@@ -24,7 +24,7 @@ class RecompilePropertiesBindingTest {
 
     @Test
     void upjPropertiesBindFromApplicationProperties() {
-        assertEquals("../LANDWEBAP/src/main/webapp/WEB-INF", props.sourceDir());
+        assertEquals("../sample-reports/WEB-INF", props.sourceDir());
         assertEquals("out-jasper", props.outDir());
         assertEquals("recompile-report.json", props.reportFile());
         assertTrue(props.dryRun());

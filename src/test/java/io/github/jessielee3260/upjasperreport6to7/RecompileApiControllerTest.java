@@ -39,7 +39,7 @@ class RecompileApiControllerTest {
     void setup() {
         JasperRecompileService jasperService = new JasperRecompileService();
         props = new RecompileProperties(
-                "../LANDWEBAP/src/main/webapp/WEB-INF",
+                "../sample-reports/WEB-INF",
                 "out-jasper-test",
                 false,
                 true,
