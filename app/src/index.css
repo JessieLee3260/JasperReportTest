@@ -1,0 +1,99 @@
+/* 全域：明亮現代科技主題（高對比、通透感＋霓虹點綴） */
+:root {
+  /* 背景層：拉高明度，改為帶有層次的深藍灰，不再死黑 */
+  --bg-0: #0f172a;
+  --bg-1: #1e293b;
+  --grid-line: rgba(56, 189, 248, 0.08);
+
+  /* 玻璃卡片：提高亮度與邊框對比 */
+  --glass-bg: rgba(30, 41, 59, 0.75);
+  --glass-bg-2: rgba(51, 65, 85, 0.6);
+  --glass-border: rgba(56, 189, 248, 0.35);
+  --glass-glow: 0 0 0 1px rgba(56, 189, 248, 0.2), 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+
+  /* 霓虹色：稍微調亮飽和度，發光更顯眼 */
+  --neon-blue: #38bdf8;
+  --neon-cyan: #22d3ee;
+  --neon-green: #4ade80;
+  --neon-purple: #c084fc;
+  --neon-amber: #fcd34d;
+  --neon-magenta: #f43f5e;
+
+  /* 文字：大幅提升亮度與清晰度 */
+  --text: #f1f5f9;
+  --text-dim: #94a3b8;
+  --text-h: #ffffff;
+
+  --mono: ui-monospace, Consolas, monospace;
+  --sans: "Microsoft JhengHei", "Noto Sans TC", "Segoe UI", system-ui, sans-serif;
+
+  color-scheme: dark;
+  color: var(--text);
+  font: 16px/1.5 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+/* 現代科技漸層＋細格線（明亮且具儀表板感） */
+body {
+  background:
+          radial-gradient(1200px 600px at 80% -10%, rgba(56, 189, 248, 0.22), transparent 65%),
+          radial-gradient(1000px 500px at -10% 110%, rgba(192, 132, 252, 0.18), transparent 65%),
+          linear-gradient(160deg, var(--bg-1), var(--bg-0) 60%);
+  background-attachment: fixed;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+          linear-gradient(var(--grid-line) 1px, transparent 1px),
+          linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 20%, black, transparent 80%);
+}
+
+/* 主容器 */
+#root {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+h1,
+h2 {
+  font-family: var(--sans);
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+p {
+  margin: 0;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.92em;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: rgba(56, 189, 248, 0.18);
+  color: var(--neon-cyan);
+}
