@@ -67,6 +67,8 @@ public class JasperRecompileService {
         log.info("jrxml files under {} = {}", sourceDir, files.size());
 
         var ctx = DefaultJasperReportsContext.getInstance();
+        String compilerClasspath = CompilerClasspath.apply(ctx);
+        log.info("JR compiler classpath entries = {}", compilerClasspath == null ? 0 : compilerClasspath.split(java.io.File.pathSeparator).length);
         var compileMgr = JasperCompileManager.getInstance(ctx);
 
         int okCount = 0;
@@ -75,6 +77,12 @@ public class JasperRecompileService {
         List<FileResult> failures = new ArrayList<>();
         List<FileResult> all = new ArrayList<>();
 
+        ClassLoader originalContextClassLoader = Thread.currentThread().getContextClassLoader();
+        ClassLoader compilerClassLoader = CompilerClasspath.newClassLoader();
+        if (compilerClassLoader != null && compilerClassLoader != originalContextClassLoader) {
+            Thread.currentThread().setContextClassLoader(compilerClassLoader);
+        }
+        try {
         for (Path jrxml : files) {
             if (checkCancelled.getAsBoolean()) {
                 cancelled = true;
@@ -140,6 +148,11 @@ public class JasperRecompileService {
                 report.total(), report.ok(), report.failed(), skipped, cancelled, p.dryRun(), reportPath);
         failures.stream().limit(20).forEach(f -> log.info("  FAIL [{}] {}", f.path(), f.error()));
         return report;
+        } finally {
+            if (compilerClassLoader != originalContextClassLoader) {
+                Thread.currentThread().setContextClassLoader(originalContextClassLoader);
+            }
+        }
     }
 
     private static String stageOf(Exception e) {
